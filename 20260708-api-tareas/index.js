@@ -60,6 +60,20 @@ app.get("/", (req, res)=> {
 })
 
 
+//===============================================
+//GET - OBTENER TODAS LAS TAREAS 
+//===============================================
+//RUTA:
+//GET /api/tareas
+//Devuelve todas las tareas almacenadas.
+app.get("/api/tareas", (req, res) => {
+    //Codigo HTTP 200 = OK
+    //json() convierte autamaticamente el arreglo 
+    //en formato json
+    res.status(200).json(tareas);
+});
+
+
 
 
 
