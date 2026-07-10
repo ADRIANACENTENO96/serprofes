@@ -73,6 +73,46 @@ app.get("/api/tareas", (req, res) => {
     res.status(200).json(tareas);
 });
 
+//GET- OBTENER UNA TAREA POR SU ID 
+//======================================
+//RUTA:
+//"id" significa que el valor dinamico
+app.get("/api/tareas/:id", (req, res) => {
+    //req.params.id llega como texto.
+    //parseInt() lo convierte a numero 
+    const id = parseInt(req.params.id);
+    //Buscamos la tarea cuyo id coincida.
+    const tarea = tareas.find(t => t.id === id);
+    //si no existe
+    if(!tarea){
+        //Codigo HTTP 404 = No encontrado
+        return res.status(404).json ({
+            mensaje: "La tarea no existe"
+        });
+    }
+    //Si existe devolvemos la tarea
+    res.status(200).json(tareas);
+});
+
+
+//=================================
+//POST - CREAR UNA NUEVA TAREA
+//============================
+//Ruta:
+//POST /api/tareas
+//{"titulo": "Estudiar Express"}
+app.post("/api/tareas", (req, res) => {
+    const { titulo } = req.body;
+
+    if(!titulo) {
+        return res.status(400).json({
+        mensaje: "Debe indicar el titulo de la tarea"
+        });
+}
+
+
+
+
 
 
 
