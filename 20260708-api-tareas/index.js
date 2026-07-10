@@ -102,17 +102,33 @@ app.get("/api/tareas/:id", (req, res) => {
 //POST /api/tareas
 //{"titulo": "Estudiar Express"}
 app.post("/api/tareas", (req, res) => {
+    //Extraemos que el titulo creado por el cliente
     const { titulo } = req.body;
-
+    //validamos que el titulo exista
     if(!titulo) {
+        //Codigo HTTP = Solicitud incorrecta
         return res.status(400).json({
         mensaje: "Debe indicar el titulo de la tarea"
         });
 }
+//Creamos un nuevo objeto 
+const nuevaTarea = {
+    //Generamos un id automatico
+    id: tareas.length + 1,
+    //Guardamos el titulo recibido.
+    titulo,
+    //Toda tarea nueva comienza incompleta
+    completada: false
+};
+//Agregamos la nueva tarea al arreglo
+tareas.push(nuevaTarea);
+//Respondemos indicando que fue creada
+res.status(201).json({
+    mensaje: "Tarea creada correctamente",
+    tarea: nuevaTarea
+});
 
-
-
-
+});
 
 
 
