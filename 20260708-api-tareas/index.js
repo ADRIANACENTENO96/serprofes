@@ -130,6 +130,47 @@ res.status(201).json({
 
 });
 
+//==========================================
+// PUT - ACTUALIZAR UNA TAREA
+//==========================================
+//Ruta:
+//PUT /api/tareas/1
+//Permite modificar una tarea existente
+app.put("/api/tareas/:id", (req, res) => {
+    //Obtenemos el id enviado a la URL
+    const id = parseInt(req.params.id);
+    //Buscamos la tarea.
+    const tarea = tareas.find(t => t.id === id);
+    // Si no existe...
+    if(!tarea) {
+        return res.status(404), json({
+            mensaje: "La tarea no existe"
+        });
+    }
+    //Obtenemos los datos enviados
+    const { titulo, completada} = req.body;
+    // Si el cliente envia un nuevo titulo,
+    //actualizamos unicamente ese campo
+    //!== "distinto de" undefined significa que una variable o propiedad 
+    //no existe o no tiene valor 
+    if (titulo !== undefined) {
+        tarea.titulo = titulo;
+    }
+    //Si el cliente envia el estado, actualizamos unicamente ese campo
+    if (completada !== undefined) {
+        tarea.completada = completada
+    }
+    //Respondemos indicando que todo salio bien 
+    res.status(200).json({
+        mensaje: "Tarea actualizada",
+        tarea
+
+    });
+});
+
+
+
+
 
 
 
