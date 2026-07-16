@@ -1,121 +1,105 @@
-// ==========================================================
-// Backend de Videojuegos con portadas automáticas (RAWG)
-// ==========================================================
-
+//==================================
+//1. IMPORTACIONES
+//==================================
 const express = require("express");
 const cors = require("cors");
 
-// node-fetch compatible con Node 26 + CommonJS
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
+//=============================================
+//2. INICIALIZACIÓN
+//=============================================
 const app = express();
+
+//=============================================
+//3. MIDDLEWARES (CONFIGURACIÓN GLOBAL)
+//=============================================
 app.use(cors());
 app.use(express.json());
 
-// ==========================================================
-// Catálogo inicial
-// ==========================================================
+//===============================================
+//4. NUESTRA BASE DE DATOS
+//===============================================
 let videojuegos = [
-  { id: 1, titulo: "The Legend of Zelda: Breath of the Wild", plataforma: "Nintendo Switch" },
-  { id: 2, titulo: "Halo Infinite", plataforma: "Xbox Series X" }
+    { id: 1, titulo: "Need for Speed" },
+    { id: 2, titulo: "Minecraft" },
+    { id: 3, titulo: "Roblox" }
 ];
 
-// ==========================================================
-// RAWG: obtener portada por título
-// ==========================================================
-async function obtenerPortadaRAWG(nombre) {
-  const apiKey = "TU_RAWG_API_KEY";
+//================================================
+//5. RUTAS DE LA API (CRUD)
+//================================================
 
-  const url = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(nombre)}`;
-
-  const respuesta = await fetch(url);
-  const datos = await respuesta.json();
-
-  if (!datos.results || datos.results.length === 0) return null;
-
-  const juego = datos.results[0];
-
-  return juego.background_image || null;
-}
-
-// ==========================================================
-// Completar portadas del catálogo inicial
-// ==========================================================
-async function completarPortadasIniciales() {
-  for (let juego of videojuegos) {
-    juego.portada = await obtenerPortadaRAWG(juego.titulo);
-  }
-  console.log("🎮 Portadas iniciales cargadas desde RAWG");
-}
-
-// ==========================================================
-// GET: obtener todos los videojuegos
-// ==========================================================
+// Leer el catálogo completo (GET)
 app.get("/api/videojuegos", (req, res) => {
-  res.json(videojuegos);
+    res.json(videojuegos);
 });
 
-// ==========================================================
-// POST: crear videojuego con portada automática
-// ==========================================================
-app.post("/api/videojuegos", async (req, res) => {
-  const { titulo, plataforma } = req.body;
+// Añadir un videojuego nuevo (POST)
+app.post("/api/videojuegos", (req, res) => {
+    const { titulo } = req.body;
 
-  if (!titulo || !plataforma) {
-    return res.status(400).json({ error: "Faltan datos obligatorios" });
-  }
+    // Validación básica
+    if (!titulo) {
+        return res.status(400).json({
+            error: "Faltan datos obligatorios"
+        });
+    }
 
-  const portada = await obtenerPortadaRAWG(titulo);
+    const nuevoVideojuego = {
+        id: videojuegos.length > 0
+            ? videojuegos[videojuegos.length - 1].id + 1
+            : 1,
+        titulo
+    };
 
-  const nuevoJuego = {
-    id: videojuegos.length > 0 ? videojuegos[videojuegos.length - 1].id + 1 : 1,
-    titulo,
-    plataforma,
-    portada
-  };
+    videojuegos.push(nuevoVideojuego);
 
-  videojuegos.push(nuevoJuego);
-  res.status(201).json(nuevoJuego);
+    res.status(201).json(nuevoVideojuego);
 });
 
-// ==========================================================
-// PUT: editar videojuego (actualiza portada si cambia el título)
-// ==========================================================
-app.put("/api/videojuegos/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
-  const { titulo, plataforma } = req.body;
+// Modificar un videojuego (PUT)
+app.put("/api/videojuegos/:id", (req, res) => {
+    const id = parseInt(req.params.id);
+    const { titulo } = req.body;
 
-  const juego = videojuegos.find(j => j.id === id);
-  if (!juego) return res.status(404).json({ error: "Videojuego no encontrado" });
+    const videojuego = videojuegos.find(v => v.id === id);
 
-  let nuevaPortada = juego.portada;
+    if (!videojuego) {
+        return res.status(404).json({
+            error: "Videojuego no encontrado"
+        });
+    }
 
-  if (juego.titulo !== titulo) {
-    nuevaPortada = await obtenerPortadaRAWG(titulo);
-  }
+    if (titulo) {
+        videojuego.titulo = titulo;
+    }
 
-  juego.titulo = titulo;
-  juego.plataforma = plataforma;
-  juego.portada = nuevaPortada;
-
-  res.json(juego);
+    res.json(videojuego);
 });
 
-// ==========================================================
-// DELETE: eliminar videojuego
-// ==========================================================
+// Eliminar un videojuego (DELETE)
 app.delete("/api/videojuegos/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  videojuegos = videojuegos.filter(j => j.id !== id);
-  res.json({ mensaje: "Videojuego eliminado" });
+    const id = parseInt(req.params.id);
+
+    const indice = videojuegos.findIndex(v => v.id === id);
+
+    if (indice === -1) {
+        return res.status(404).json({
+            error: "Videojuego no encontrado"
+        });
+    }
+
+    videojuegos.splice(indice, 1);
+
+    res.json({
+        mensaje: "Videojuego eliminado correctamente"
+    });
 });
 
-// ==========================================================
-// Iniciar servidor
-// ==========================================================
-completarPortadasIniciales().then(() => {
-  app.listen(3002, () => {
-    console.log("🎮 Servidor de videojuegos (RAWG) listo en el puerto 3002");
-  });
+//==========================================
+//6. ENCENDIDO DEL SERVIDOR
+//==========================================
+const PUERTO = 3000;
+
+app.listen(PUERTO, () => {
+    console.log(`🎮 Servidor de videojuegos listo en el puerto ${PUERTO} (CORS Activado)`);
 });
